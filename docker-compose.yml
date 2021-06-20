@@ -1,0 +1,42 @@
+version: "3"
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: db
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - .init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  server:
+    depends_on:
+      - "db"
+    build: ./server/
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+
+  client_web:
+    depends_on:
+      - server
+      - client_mobile
+    build: ./client_web/
+    ports:
+      - 8081:3000
+    restart: unless-stopped
+    volumes:
+      - client:/var/client
+
+  client_mobile:
+    build: ./client_mobile/
+    volumes:
+      - client:/var/client
+
+volumes:
+  pgdata:
+  client:
